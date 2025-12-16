@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ category.name }} - BD Shopping{% endblock %}
+
+{% block content %}
+<!-- Category Header -->
+<div class="card bg-light mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-6 mb-3">
+                    <i class="fas fa-{{ category.icon|default:'shopping-bag' }} me-2 text-danger"></i>
+                    {{ category.name }}
+                </h1>
+                {% if category.description %}
+                <p class="lead">{{ category.description }}</p>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-end">
+                <span class="badge bg-danger fs-6 p-3">
+                    {{ products.count }} Products
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'product_list' %}">Products</a></li>
+        <li class="breadcrumb-item active">{{ category.name }}</li>
+    </ol>
+</nav>
+
+<!-- Products Grid -->
+{% if products %}
+<div class="row">
+    {% for product in products %}
+    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+        <div class="card h-100 product-card">
+            <!-- Product Image -->
+            {% if product.image and product.image.url %}
+                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" 
+                     style="height: 200px; object-fit: cover;">
+            {% else %}
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                     style="height: 200px; background: linear-gradient(45deg, #f8f9fa, #e9ecef);">
+                    <i class="fas fa-image fa-3x text-muted"></i>
+                </div>
+            {% endif %}
+            
+            <!-- Discount Badge -->
+            {% if product.discount_percentage %}
+            <span class="badge bg-danger position-absolute" style="top: 10px; left: 10px;">
+                {{ product.discount_percentage }}% OFF
+            </span>
+            {% endif %}
+            
+            <div class="card-body">
+                <h5 class="card-title">{{ product.name|truncatechars:30 }}</h5>
+                <p class="card-text text-muted small">{{ product.description|truncatechars:60 }}</p>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="h5 text-danger">৳{{ product.price }}</span>
+                        {% if product.old_price %}
+                        <span class="text-muted text-decoration-line-through small ms-2">
+                            ৳{{ product.old_price }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Stock Status -->
+                    {% if product.in_stock %}
+                    <span class="badge bg-success">In Stock</span>
+                    {% else %}
+                    <span class="badge bg-danger">Out of Stock</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card-footer bg-white">
+                <div class="d-grid gap-2">
+                    <!-- View Details Button -->
+                    <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-danger">
+                        <i class="fas fa-eye"></i> View Details
+                    </a>
+                    
+                    <!-- Add to Cart Button (only if in stock) -->
+                    {% if product.in_stock %}
+                    <form action="{% url 'cart_add' product.id %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
+                    </form>
+                    {% else %}
+                    <button class="btn btn-secondary w-100" disabled>
+                        <i class="fas fa-times-circle"></i> Out of Stock
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination (if needed) -->
+{% if products.has_other_pages %}
+<nav aria-label="Page navigation" class="mt-5">
+    <ul class="pagination justify-content-center">
+        {% if products.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ products.previous_page_number }}">Previous</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">Previous</span>
+        </li>
+        {% endif %}
+        
+        {% for i in products.paginator.page_range %}
+            {% if products.number == i %}
+            <li class="page-item active">
+                <span class="page-link">{{ i }}</span>
+            </li>
+            {% else %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if products.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ products.next_page_number }}">Next</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">Next</span>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<!-- No Products Message -->
+<div class="text-center py-5">
+    <div class="mb-4">
+        <i class="fas fa-box-open fa-5x text-muted"></i>
+    </div>
+    <h3>No Products Found</h3>
+    <p class="text-muted mb-4">
+        There are no products in the "{{ category.name }}" category yet.
+    </p>
+    <div class="d-flex justify-content-center gap-3">
+        <a href="{% url 'product_list' %}" class="btn btn-danger">
+            <i class="fas fa-store"></i> Browse All Products
+        </a>
+        {% if user.is_staff %}
+        <a href="/admin/products/product/add/" class="btn btn-outline-danger">
+            <i class="fas fa-plus-circle"></i> Add Product
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Related Categories -->
+<div class="mt-5 pt-5 border-top">
+    <h4 class="mb-4">Browse Other Categories</h4>
+    <div class="row">
+        {% for cat in all_categories %}
+            {% if cat.id != category.id %}
+            <div class="col-md-2 col-sm-4 col-6 mb-3">
+                <a href="{% url 'category_detail' cat.slug %}" class="text-decoration-none">
+                    <div class="card text-center product-card">
+                        <div class="card-body">
+                            <i class="fas fa-{{ cat.icon|default:'shopping-bag' }} fa-2x text-danger mb-3"></i>
+                            <h6 class="card-title">{{ cat.name }}</h6>
+                            <small class="text-muted">{{ cat.products.count }} products</small>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
