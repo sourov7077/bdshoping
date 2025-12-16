@@ -10,6 +10,11 @@ class Order(models.Model):
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
         ('refunded', 'Refunded'),
+        ('cod', 'Cash on Delivery'),
+        ('bkash', 'bKash'),
+        ('nagad', 'Nagad'),
+        ('sslcommerz', 'SSLCommerz'),
+        ('card', 'Credit/Debit Card'),
     ]
     
     PAYMENT_STATUS_CHOICES = [

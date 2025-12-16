@@ -78,7 +78,31 @@
                         </a>
                     </li>
                 </ul>
-                
+                <!-- Wishlist Icon -->
+                <li class="nav-item">
+    <a class="nav-link" href="{% url 'wishlist_view' %}">
+        <i class="fas fa-heart"></i>
+        {% if user.is_authenticated and user.wishlist.item_count > 0 %}
+        <span class="badge bg-danger wishlist-count">{{ user.wishlist.item_count }}</span>
+        {% endif %}
+    </a>
+</li>
+
+                  <!-- Coupons Icon -->
+                  <li class="nav-item">
+    <a class="nav-link" href="{% url 'coupon_list' %}">
+        <i class="fas fa-tag"></i> Offers
+    </a>
+</li>
+
+                  <!-- Admin Dashboard (for staff only) -->
+                {% if user.is_staff %}
+                  <li class="nav-item">
+    <a class="nav-link" href="{% url 'admin_dashboard' %}">
+        <i class="fas fa-chart-line"></i> Dashboard
+    </a>
+</li>
+                {% endif %}
                 <ul class="navbar-nav">
                     <!-- Search Form -->
                     <form class="d-flex me-3" method="GET" action="{% url 'product_list' %}">
@@ -88,14 +112,14 @@
                         </button>
                     </form>
                     
-                    <!-- Cart Icon -->
+                    <!-- Cart Icon in   Navbar -->
                     <li class="nav-item">
-                        <a class="nav-link position-relative" href="{% url 'cart_detail' %}">
-                            <i class="fas fa-shopping-cart fa-lg"></i>
-                            {% if cart_total_items %}
-                                <span class="cart-count">{{ cart_total_items }}</span>
-                            {% endif %}
-                        </a>
+                    <a class="nav-link position-relative" href="{% url 'cart_detail' %}">
+                    <i class="fas fa-shopping-cart"></i>
+                  {% if user.is_authenticated and user.cart.total_items > 0 %}
+                    <span class="cart-count">{{ user.cart.total_items }}</span>
+                  {% endif %}
+                      </a>
                     </li>
                     
                     <!-- User Dropdown -->

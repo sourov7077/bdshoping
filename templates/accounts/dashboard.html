@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+  {% extends 'base.html' %}
 
 {% block title %}Dashboard - BD Shopping{% endblock %}
 
@@ -20,11 +20,11 @@
                 <a href="{% url 'shipping_address' %}" class="list-group-item list-group-item-action">
                     <i class="fas fa-address-book"></i> Shipping Address
                 </a>
-                <a href="{% url 'order_history' %}" class="list-group-item list-group-item-action">
-                    <i class="fas fa-history"></i> Order History
-                </a>
                 <a href="{% url 'change_password' %}" class="list-group-item list-group-item-action">
                     <i class="fas fa-key"></i> Change Password
+                </a>
+                <a href="{% url 'logout' %}" class="list-group-item list-group-item-action text-danger">
+                    <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
             </div>
         </div>
@@ -37,101 +37,181 @@
                 <h4 class="mb-0"><i class="fas fa-tachometer-alt"></i> Dashboard</h4>
             </div>
             <div class="card-body">
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="card bg-primary text-white text-center p-3">
-                            <i class="fas fa-user fa-3x mb-2"></i>
-                            <h5>Profile</h5>
-                            <a href="{% url 'profile_update' %}" class="btn btn-light btn-sm">Update</a>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card bg-success text-white text-center p-3">
-                            <i class="fas fa-shopping-bag fa-3x mb-2"></i>
-                            <h5>Orders</h5>
-                            <p class="h4">{{ recent_orders.count }}</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card bg-info text-white text-center p-3">
-                            <i class="fas fa-map-marker-alt fa-3x mb-2"></i>
-                            <h5>Addresses</h5>
-                            <p class="h4">{{ shipping_addresses.count }}</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card bg-warning text-white text-center p-3">
-                            <i class="fas fa-calendar-alt fa-3x mb-2"></i>
-                            <h5>Member Since</h5>
-                            <p>{{ user.date_joined|date:"M d, Y" }}</p>
-                        </div>
-                    </div>
+                <!-- Welcome Message -->
+                <div class="alert alert-success">
+                    <h5 class="mb-0">Welcome, {{ user.first_name|default:user.username }}!</h5>
+                    <p class="mb-0">You're logged in as {{ user.email }}</p>
                 </div>
 
-                <!-- Recent Orders -->
-                <h5 class="border-bottom pb-2">Recent Orders</h5>
-                {% if recent_orders %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Order #</th>
-                                <th>Date</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for order in recent_orders %}
-                            <tr>
-                                <td>{{ order.order_number }}</td>
-                                <td>{{ order.created_at|date:"M d, Y" }}</td>
-                                <td>৳{{ order.total }}</td>
-                                <td>
-                                    <span class="badge bg-{% if order.status == 'delivered' %}success{% elif order.status == 'cancelled' %}danger{% else %}warning{% endif %}">
-                                        {{ order.get_status_display }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <a href="{% url 'order_detail' order.id %}" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-eye"></i> View
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <p class="text-muted">No orders yet. <a href="{% url 'product_list' %}">Start shopping!</a></p>
-                {% endif %}
-
-                <!-- Shipping Addresses -->
-                <h5 class="border-bottom pb-2 mt-4">Shipping Addresses</h5>
-                {% if shipping_addresses %}
-                <div class="row">
-                    {% for address in shipping_addresses %}
-                    <div class="col-md-6 mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h6>{{ address.full_name }}</h6>
-                                <p class="mb-1">{{ address.address }}</p>
-                                <p class="mb-1">{{ address.city }} - {{ address.postal_code }}</p>
-                                <p class="mb-1">Phone: {{ address.phone }}</p>
-                                {% if address.is_default %}
-                                <span class="badge bg-success">Default</span>
+                <!-- Profile Picture Section -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Profile Picture</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-4 text-center">
+                                {% if profile.has_profile_picture %}
+                                    <img src="{{ profile.get_profile_picture_url }}" 
+                                         class="rounded-circle border shadow" 
+                                         style="width: 200px; height: 200px; object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto" 
+                                         style="width: 200px; height: 200px;">
+                                        <i class="fas fa-user fa-4x text-white"></i>
+                                    </div>
                                 {% endif %}
+                            </div>
+                            <div class="col-md-8">
+                                <h5>{{ user.get_full_name|default:user.username }}</h5>
+                                <p class="text-muted mb-2">{{ user.email }}</p>
+                                
+                                {% if profile.phone %}
+                                    <p><i class="fas fa-phone"></i> {{ profile.phone }}</p>
+                                {% endif %}
+                                
+                                {% if profile.city %}
+                                    <p><i class="fas fa-map-marker-alt"></i> {{ profile.city }}</p>
+                                {% endif %}
+                                
+                                <div class="mt-4">
+                                    <a href="{% url 'profile_update' %}" class="btn btn-danger">
+                                        <i class="fas fa-edit"></i> 
+                                        {% if profile.has_profile_picture %}
+                                            Change Profile Picture
+                                        {% else %}
+                                            Upload Profile Picture
+                                        {% endif %}
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
-                {% else %}
-                <p class="text-muted">No shipping addresses added yet.</p>
-                {% endif %}
+
+                <!-- Profile Information -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0"><i class="fas fa-user"></i> Personal Info</h6>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Full Name:</strong> {{ user.get_full_name|default:"Not set" }}</p>
+                                <p><strong>Email:</strong> {{ user.email }}</p>
+                                <p><strong>Username:</strong> {{ user.username }}</p>
+                                <p><strong>Member Since:</strong> {{ user.date_joined|date:"F d, Y" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-success text-white">
+                                <h6 class="mb-0"><i class="fas fa-address-card"></i> Contact Info</h6>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Phone:</strong> {{ profile.phone|default:"Not set" }}</p>
+                                <p><strong>Address:</strong> {{ profile.address|default:"Not set"|truncatechars:50 }}</p>
+                                <p><strong>City:</strong> {{ profile.city|default:"Not set" }}</p>
+                                <p><strong>Postal Code:</strong> {{ profile.postal_code|default:"Not set" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <h5 class="border-bottom pb-2 mb-3">Quick Stats</h5>
+                <div class="row mb-4">
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="fas fa-shopping-cart fa-2x text-primary mb-2"></i>
+                                <h6>Total Orders</h6>
+                                <p class="h4">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="fas fa-map-marker-alt fa-2x text-success mb-2"></i>
+                                <h6>Addresses</h6>
+                                <p class="h4">{{ shipping_addresses.count }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="fas fa-calendar-alt fa-2x text-warning mb-2"></i>
+                                <h6>Member Days</h6>
+                              <p class="h4">
+                  {% with days=user.date_joined|timesince %}
+                  {{ days|slice:":10" }} <!-- শুধু প্রথম ১০টা character দেখাবে -->
+                  {% endwith %}
+                              </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="fas fa-user-check fa-2x text-info mb-2"></i>
+                                <h6>Profile</h6>
+                                <p class="h4">
+                                    {% if profile.has_profile_picture %}✅{% else %}❌{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <h5 class="border-bottom pb-2 mb-3">Quick Actions</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card text-center h-100">
+                            <div class="card-body">
+                                <i class="fas fa-user-edit fa-2x text-primary mb-3"></i>
+                                <h6>Update Profile</h6>
+                                <p class="text-muted small">Update your personal information</p>
+                                <a href="{% url 'profile_update' %}" class="btn btn-outline-primary btn-sm">Update</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card text-center h-100">
+                            <div class="card-body">
+                                <i class="fas fa-key fa-2x text-warning mb-3"></i>
+                                <h6>Change Password</h6>
+                                <p class="text-muted small">Update your account password</p>
+                                <a href="{% url 'change_password' %}" class="btn btn-outline-warning btn-sm">Change</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card text-center h-100">
+                            <div class="card-body">
+                                <i class="fas fa-map-marker-alt fa-2x text-success mb-3"></i>
+                                <h6>Shipping Address</h6>
+                                <p class="text-muted small">Manage your delivery addresses</p>
+                                <a href="{% url 'shipping_address' %}" class="btn btn-outline-success btn-sm">Manage</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+{% block extra_js %}
+<script>
+    // Custom template filter for splitting
+    function split(value, arg) {
+        return value.split(arg)[0];
+    }
+</script>
+{% endblock %}
 {% endblock %}

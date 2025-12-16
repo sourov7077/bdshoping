@@ -1,0 +1,354 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - BD Shopping{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-chart-line text-primary"></i> Admin Dashboard</h2>
+        <div class="dropdown">
+            <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="fas fa-calendar"></i> Last 7 Days
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#">Today</a></li>
+                <li><a class="dropdown-item" href="#">Last 7 Days</a></li>
+                <li><a class="dropdown-item" href="#">Last 30 Days</a></li>
+                <li><a class="dropdown-item" href="#">This Month</a></li>
+                <li><a class="dropdown-item" href="#">All Time</a></li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <!-- Total Revenue -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Revenue
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                ৳{{ total_revenue|floatformat:2 }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Total Orders -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Orders
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_orders }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shopping-bag fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pending Orders -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Pending Orders
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ pending_orders }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Total Users -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total Users
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_users }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts & Detailed Stats -->
+    <div class="row">
+        <!-- Sales Chart -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Weekly Sales</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Stats</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="font-weight-bold">Today's Orders</h6>
+                        <p class="h4 text-primary">{{ today_orders }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="font-weight-bold">Weekly Revenue</h6>
+                        <p class="h4 text-success">৳{{ weekly_revenue|floatformat:2 }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="font-weight-bold">New Users (Week)</h6>
+                        <p class="h4 text-info">{{ new_users_week }}</p>
+                    </div>
+                    
+                    <div>
+                        <h6 class="font-weight-bold">Weekly Orders</h6>
+                        <p class="h4 text-warning">{{ weekly_orders }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Products & Recent Orders -->
+    <div class="row">
+        <!-- Top Products -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Top Selling Products</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Sold</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in top_products %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if product.get_image_url %}
+                                            <img src="{{ product.get_image_url }}" 
+                                                 class="rounded me-2" 
+                                                 style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% endif %}
+                                            <span>{{ product.name|truncatechars:30 }}</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ product.category.name|default:"-" }}</td>
+                                    <td>৳{{ product.price }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ product.total_sold|default:0 }}</span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">
+                                        No sales data available
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Orders -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Orders</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'admin:orders_order_change' order.id %}" 
+                                           class="text-decoration-none">
+                                            #{{ order.order_number }}
+                                        </a>
+                                    </td>
+                                    <td>{{ order.user.username }}</td>
+                                    <td>৳{{ order.total }}</td>
+                                    <td>
+                                        {% if order.status == 'delivered' %}
+                                        <span class="badge bg-success">{{ order.get_status_display }}</span>
+                                        {% elif order.status == 'pending' %}
+                                        <span class="badge bg-warning">{{ order.get_status_display }}</span>
+                                        {% else %}
+                                        <span class="badge bg-info">{{ order.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">
+                                        No recent orders
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Low Stock Alert -->
+    {% if low_stock %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4 border-left-danger">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-danger">
+                        <i class="fas fa-exclamation-triangle"></i> Low Stock Alert
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for product in low_stock %}
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="card border-danger">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ product.name|truncatechars:20 }}</h6>
+                                    <p class="card-text">
+                                        <strong>Stock:</strong> 
+                                        <span class="badge bg-danger">{{ product.stock }}</span>
+                                    </p>
+                                    <a href="{% url 'admin:products_product_change' product.id %}" 
+                                       class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-edit"></i> Restock
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Sales Chart
+const ctx = document.getElementById('salesChart').getContext('2d');
+const salesChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: {{ chart_labels|safe }},
+        datasets: [{
+            label: 'Daily Sales (৳)',
+            data: {{ chart_data|safe }},
+            backgroundColor: 'rgba(78, 115, 223, 0.05)',
+            borderColor: 'rgba(78, 115, 223, 1)',
+            borderWidth: 2,
+            pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    drawBorder: false
+                },
+                ticks: {
+                    callback: function(value) {
+                        return '৳' + value;
+                    }
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top',
+            }
+        }
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

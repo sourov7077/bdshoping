@@ -26,6 +26,7 @@ else:
         ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # Application definition
+# Add to INSTALLED_APPS
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -34,22 +35,34 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    # Third Party Apps
+    # Third Party
     'crispy_forms',
     'crispy_bootstrap5',
+    'django_filters',
     
     # Our Apps
     'home',
     'accounts',
+    'payments',
     'products',
     'cart',
     'orders',
-    'payments',
+    'coupons',
+    'wishlist',
+    'reviews',
+    'analytics',
 ]
 
-# Crispy Forms Settings
+# Crispy Forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+# Email Configuration (Optional)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For testing
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # For production
+# Payment settings
+PAYMENT_SUCCESS_URL = '/payments/success/'
+PAYMENT_FAILURE_URL = '/payments/failed/'
 
 MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware', 
@@ -124,6 +137,15 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# Create media folders if not exists
+MEDIA_FOLDERS = [
+    'media/profile_pics',
+    'media/products',
+]
+
+for folder in MEDIA_FOLDERS:
+    os.makedirs(os.path.join(BASE_DIR, folder), exist_ok=True)
+    
 # Login/Logout URLs
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
@@ -132,5 +154,29 @@ LOGOUT_REDIRECT_URL = 'home'
 # Session settings for cart
 CART_SESSION_ID = 'cart'
 
+
+# File upload settings for Termux
+FILE_UPLOAD_PERMISSIONS = 0o644
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
+
+# Disable file locking in Termux
+import django.core.files.locks
+
+# Monkey patch to disable file locking
+def no_lock(fd, flags):
+    return True
+
+def no_unlock(fd):
+    return True
+
+django.core.files.locks.lock = no_lock
+django.core.files.locks.unlock = no_unlock
+
+# Ensure Pillow is installed
+try:
+    from PIL import Image
+except ImportError:
+    print("Warning: Pillow is not installed. Run: pip install Pillow")
+    
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

@@ -14,28 +14,47 @@
                 <form method="GET">
                     <div class="mb-3">
                         <label class="form-label">Category</label>
-                        {{ form.category }}
+                        <select name="category" class="form-select">
+                            <option value="">All Categories</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:"i" %}selected{% endif %}>
+                                {{ cat.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Brand</label>
-                        {{ form.brand }}
-                    </div>
+                    
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Min Price</label>
                             <input type="number" name="min_price" class="form-control" 
-                                   value="{{ request.GET.min_price }}">
+                                   value="{{ request.GET.min_price }}" placeholder="Min">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Max Price</label>
                             <input type="number" name="max_price" class="form-control" 
-                                   value="{{ request.GET.max_price }}">
+                                   value="{{ request.GET.max_price }}" placeholder="Max">
                         </div>
                     </div>
+                    
                     <div class="mb-3">
                         <label class="form-label">Sort By</label>
-                        {{ form.sort_by }}
+                        <select name="sort_by" class="form-select">
+                            <option value="newest" {% if request.GET.sort_by == 'newest' %}selected{% endif %}>
+                                Newest First
+                            </option>
+                            <option value="price_low" {% if request.GET.sort_by == 'price_low' %}selected{% endif %}>
+                                Price: Low to High
+                            </option>
+                            <option value="price_high" {% if request.GET.sort_by == 'price_high' %}selected{% endif %}>
+                                Price: High to Low
+                            </option>
+                            <option value="name" {% if request.GET.sort_by == 'name' %}selected{% endif %}>
+                                Name A-Z
+                            </option>
+                        </select>
                     </div>
+                    
                     <div class="d-grid">
                         <button type="submit" class="btn btn-danger">
                             <i class="fas fa-search"></i> Apply Filters
@@ -74,9 +93,9 @@
             </div>
         </div>
         
-        {% if search_query %}
+        {% if request.GET.q %}
         <div class="alert alert-info">
-            Search results for: "<strong>{{ search_query }}</strong>"
+            Search results for: "<strong>{{ request.GET.q }}</strong>"
         </div>
         {% endif %}
         
@@ -84,31 +103,34 @@
             {% for product in products %}
             <div class="col-lg-4 col-md-6 mb-4">
                 <div class="card h-100 product-card">
-                    {% if product.discount_percentage %}
+                    {% if product.discount_percentage and product.discount_percentage > 0 %}
                     <span class="badge bg-danger position-absolute" style="top: 10px; left: 10px;">
                         {{ product.discount_percentage }}% OFF
                     </span>
                     {% endif %}
-                   <!-- নতুন কোড: -->
-                  {% if product.image and product.image.url %}
-                  <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" 
-                  style="height: 200px; object-fit: cover;">
-                  {% else %}
+                    
+                    <!-- Image Display - FIXED -->
+                    {% if product.get_image_url %}
+                    <img src="{{ product.get_image_url }}" 
+                         class="card-img-top" 
+                         alt="{{ product.name }}" 
+                         style="height: 200px; object-fit: cover;">
+                    {% else %}
                     <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
-                   style="height: 200px; background: linear-gradient(45deg, #f8f9fa, #e9ecef);">
-                  <i class="fas fa-image fa-3x text-muted"></i>
-                  </div>
-                 {% endif %}
+                         style="height: 200px; background: linear-gradient(45deg, #f8f9fa, #e9ecef);">
+                        <i class="fas fa-image fa-3x text-muted"></i>
+                    </div>
+                    {% endif %}
                     
                     <div class="card-body">
                         <h5 class="card-title">{{ product.name|truncatechars:30 }}</h5>
-                        <p class="card-text text-muted small">{{ product.description|truncatechars:60 }}</p>
+                        <p class="card-text text-muted small">{{ product.description|truncatechars:60|default:"No description" }}</p>
                         
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <span class="h5 text-danger">৳{{ product.price }}</span>
-                                {% if product.old_price %}
-                                <span class="text-muted text-decoration-line-through small">
+                                {% if product.old_price and product.old_price > product.price %}
+                                <span class="text-muted text-decoration-line-through small ms-2">
                                     ৳{{ product.old_price }}
                                 </span>
                                 {% endif %}
@@ -123,7 +145,7 @@
                     
                     <div class="card-footer bg-white">
                         <div class="d-grid gap-2">
-                            <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-danger">
+                            <a href="{% url 'product_detail' product_id=product.id %}" class="btn btn-outline-danger">
                                 <i class="fas fa-eye"></i> View Details
                             </a>
                             {% if product.in_stock %}
@@ -144,6 +166,7 @@
                 <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
                 <h3>No products found</h3>
                 <p class="text-muted">Try different filters or search terms</p>
+                <a href="{% url 'product_list' %}" class="btn btn-danger">View All Products</a>
             </div>
             {% endfor %}
         </div>

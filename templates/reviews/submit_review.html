@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Write Review - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-star"></i> Write a Review</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Product Info -->
+                    <div class="d-flex align-items-center mb-4">
+                        {% if product.get_image_url %}
+                        <img src="{{ product.get_image_url }}" 
+                             class="rounded" 
+                             alt="{{ product.name }}"
+                             style="width: 80px; height: 80px; object-fit: cover;">
+                        {% endif %}
+                        <div class="ms-3">
+                            <h5>{{ product.name }}</h5>
+                            <p class="text-muted mb-0">{{ product.category.name }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Review Form -->
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <!-- Rating -->
+                        <div class="mb-4">
+                            <label class="form-label"><strong>Your Rating</strong></label>
+                            <div class="star-rating mb-2">
+                                {% for i in "12345"|make_list %}
+                                <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" 
+                                       {% if existing_review and existing_review.rating == forloop.counter %}checked{% endif %}>
+                                <label for="star{{ i }}" title="{{ i }} stars">
+                                    <i class="fas fa-star"></i>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            <small class="text-muted">Click stars to rate</small>
+                        </div>
+                        
+                        <!-- Review Comment -->
+                        <div class="mb-4">
+                            <label class="form-label"><strong>Your Review</strong></label>
+                            <textarea name="comment" class="form-control" rows="5" 
+                                      placeholder="Share your experience with this product..."
+                                      required>{% if existing_review %}{{ existing_review.comment }}{% endif %}</textarea>
+                            <small class="text-muted">Minimum 10 characters</small>
+                        </div>
+                        
+                        <!-- Tips -->
+                        <div class="alert alert-info mb-4">
+                            <h6><i class="fas fa-lightbulb"></i> Review Tips:</h6>
+                            <ul class="mb-0">
+                                <li>Be honest and specific about your experience</li>
+                                <li>Include pros and cons</li>
+                                <li>Mention product quality, features, and value for money</li>
+                                <li>Avoid personal information</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'product_detail' product.id %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i>
+                                {% if existing_review %}Update Review{% else %}Submit Review{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Existing Reviews -->
+            {% if product.reviews.all %}
+            <div class="card shadow mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-comments"></i> Other Reviews</h5>
+                </div>
+                <div class="card-body">
+                    {% for review in product.reviews.all|slice:":3" %}
+                    <div class="border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <div>
+                                <strong>{{ review.user.username }}</strong>
+                                <div class="star-rating-small">
+                                    {% for i in "12345"|make_list %}
+                                    <i class="fas fa-star {% if forloop.counter <= review.rating %}text-warning{% else %}text-muted{% endif %}"></i>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+                        </div>
+                        <p class="mb-0">{{ review.comment }}</p>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if product.reviews.count > 3 %}
+                    <div class="text-center">
+                        <a href="{% url 'product_detail' product.id %}#reviews" class="btn btn-outline-primary btn-sm">
+                            View All {{ product.reviews.count }} Reviews
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.star-rating {
+    direction: rtl;
+    display: inline-block;
+    unicode-bidi: bidi-override;
+    color: #ddd;
+}
+.star-rating input {
+    display: none;
+}
+.star-rating label {
+    display: inline-block;
+    font-size: 2rem;
+    padding: 0 5px;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+.star-rating label:hover,
+.star-rating label:hover ~ label,
+.star-rating input:checked ~ label {
+    color: #ffc107;
+}
+.star-rating-small {
+    font-size: 0.9rem;
+}
+</style>
+{% endblock %}

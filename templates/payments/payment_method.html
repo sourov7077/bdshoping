@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Select Payment Method{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Select Payment Method</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h5>Order Summary</h5>
+                        <p><strong>Order ID:</strong> #{{ order.id }}</p>
+                        <p><strong>Total Amount:</strong> ৳{{ order.get_total_cost }}</p>
+                        <p><strong>Items:</strong> {{ order.items.count }}</p>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            {% for method in payment_methods %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card payment-method-card">
+                                    <div class="card-body">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" 
+                                                   name="payment_method" 
+                                                   id="{{ method.code }}" 
+                                                   value="{{ method.code }}"
+                                                   required>
+                                            <label class="form-check-label" for="{{ method.code }}">
+                                                <h5>{{ method.icon }} {{ method.name }}</h5>
+                                                <p class="text-muted mb-0">{{ method.description }}</p>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                Continue to Payment
+                            </button>
+                            <a href="{% url 'order_detail' order.id %}" class="btn btn-outline-secondary w-100 mt-2">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.payment-method-card {
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.payment-method-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+.form-check-input {
+    transform: scale(1.2);
+}
+</style>
+{% endblock %}

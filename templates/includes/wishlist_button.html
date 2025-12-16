@@ -1,0 +1,132 @@
+<!-- wishlist_button.html -->
+<button class="btn {% if in_wishlist %}btn-danger{% else %}btn-outline-danger{% endif %} wishlist-btn" 
+        data-product-id="{{ product.id }}"
+        id="wishlist-btn-{{ product.id }}"
+        title="{% if in_wishlist %}Remove from wishlist{% else %}Add to wishlist{% endif %}">
+    <i class="{% if in_wishlist %}fas{% else %}far{% endif %} fa-heart"></i>
+    <span class="d-none d-md-inline">
+        {% if in_wishlist %}Saved{% else %}Wishlist{% endif %}
+    </span>
+</button>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Wishlist button click handler
+    document.querySelectorAll('.wishlist-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.getAttribute('data-product-id');
+            const button = this;
+            const icon = button.querySelector('i');
+            const textSpan = button.querySelector('span');
+            
+            // Save original state
+            const originalHTML = button.innerHTML;
+            const originalClass = button.className;
+            
+            // Show loading
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            // AJAX request
+            fetch(`/wishlist/toggle/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update button appearance
+                    if (data.in_wishlist) {
+                        // Now in wishlist
+                        button.classList.remove('btn-outline-danger');
+                        button.classList.add('btn-danger');
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        if (textSpan) textSpan.textContent = 'Saved';
+                        button.title = 'Remove from wishlist';
+                    } else {
+                        // Removed from wishlist
+                        button.classList.remove('btn-danger');
+                        button.classList.add('btn-outline-danger');
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        if (textSpan) textSpan.textContent = 'Wishlist';
+                        button.title = 'Add to wishlist';
+                    }
+                    
+                    // Update wishlist count in navbar
+                    const wishlistCount = document.querySelector('.wishlist-count');
+                    if (wishlistCount) {
+                        wishlistCount.textContent = data.wishlist_count;
+                        wishlistCount.style.display = data.wishlist_count > 0 ? 'flex' : 'none';
+                    }
+                    
+                    // Show success message
+                    showToast('success', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('error', 'Something went wrong');
+                // Revert button
+                button.innerHTML = originalHTML;
+                button.className = originalClass;
+            })
+            .finally(() => {
+                button.disabled = false;
+            });
+        });
+    });
+    
+    // Check wishlist status on page load
+    function checkWishlistStatus() {
+        const wishlistButtons = document.querySelectorAll('.wishlist-btn');
+        if (wishlistButtons.length > 0) {
+            // You can implement checking via API if needed
+        }
+    }
+    
+    // Call on page load
+    checkWishlistStatus();
+});
+
+// Toast notification function
+function showToast(type, message) {
+    // Create toast container if not exists
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        document.body.appendChild(container);
+    }
+    
+    // Create toast
+    const toastId = 'toast-' + Date.now();
+    const toast = document.createElement('div');
+    toast.id = toastId;
+    toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="document.getElementById('${toastId}').remove()"></button>
+        </div>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        if (document.getElementById(toastId)) {
+            document.getElementById(toastId).remove();
+        }
+    }, 3000);
+}
+</script>

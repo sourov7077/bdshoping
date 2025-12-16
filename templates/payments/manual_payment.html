@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Complete Payment{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h4 class="mb-0">Complete {{ payment.get_payment_method_display }} Payment</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h5>Payment Details</h5>
+                        <p><strong>Amount to Pay:</strong> ৳{{ payment.amount }}</p>
+                        <p><strong>Order ID:</strong> #{{ order.id }}</p>
+                        <p><strong>Reference:</strong> Order #{{ order.id }}</p>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Payment Instructions</h5>
+                        </div>
+                        <div class="card-body">
+                            <ol class="list-group list-group-numbered">
+                                {% for instruction in instructions %}
+                                <li class="list-group-item">{{ instruction }}</li>
+                                {% endfor %}
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-success">
+                        <h5>After Payment:</h5>
+                        <ol>
+                            <li>Take screenshot of successful payment</li>
+                            <li>Go to Order Details page</li>
+                            <li>Upload the screenshot</li>
+                            <li>We will verify and confirm your order</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'order_detail' order.id %}" class="btn btn-primary">
+                            Go to Order Details
+                        </a>
+                        <a href="{% url 'payments:payment_method' order.id %}" class="btn btn-outline-secondary">
+                            Choose Different Method
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
