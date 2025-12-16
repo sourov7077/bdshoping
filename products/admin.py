@@ -2,7 +2,7 @@ from django.contrib import admin
 from django import forms
 from .models import Category, Brand, Product, ProductImage
 import base64
-import imghdr
+from PIL import Image
 
 class ProductAdminForm(forms.ModelForm):
     image_upload = forms.ImageField(
