@@ -69,6 +69,14 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# এই লাইন যোগ করুন
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+
+# Termux-specific fix
+import sys
+if 'termux' in str(sys.path).lower():
+    WHITENOISE_USE_FINDERS = True
+    
 ROOT_URLCONF = 'bdshopping.urls'
 
 TEMPLATES = [
